@@ -1,0 +1,10 @@
+#enumerate = built in function in python - to get all parmetrs in a loop 
+Authentication = checking who sending the request; Needs to be for any endpoint
+X-API-Key: my-secret-key (string like password that recocnize your clinte)
+Postman ?
+HTTPException - return HTTP errors 
+async = Asynchronous funtction | pause function to do other tasks
+await = only in async function - the code will stop for 2 second but will not block all the serever
+class request = represent all the data the comes as request from the clinte that send to the server
+Headers  ?
+
