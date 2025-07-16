@@ -16,7 +16,7 @@ class ScoreEntry(BaseModel):
 
 @app.get("/") # Define endpoint with a GET request (root path)
 def read_root(request: Request):
-    #verify_api_key(request)
+    verify_api_key(request)
     return {"message": "Hello, Leaderboard!"}
 
 
@@ -92,12 +92,13 @@ async def get_user_rank(game_id: str, user_id: str, request: Request):
                     "user_score": data_dict["user_score"],
                     "rank": rank,
                     "percentile": str(percentile)+"%"}
-        if idx < len(score_sorted_list) - 1 and data_dict["user_score"] > score_sorted_list[idx+1][1]["user_score"]: #check if the next user has a lower score
+        # check if the next user has a lower score
+        if idx < len(score_sorted_list) - 1 and data_dict["user_score"] > score_sorted_list[idx+1][1]["user_score"]: 
             rank += 1
 
 @app.get("/stas/{game_id}") # Define endpoint to get statistics for a specific game_id
 async def get_game_statistics(game_id: str, request: Request):
-    #await verify_api_key(request) # block access if API key (need to be for any path)
+    await verify_api_key(request) # block access if API key (need to be for any path)
     if game_id not in games_ids:
         return {"message": f"No scores found for game_id {game_id}"}
     total_users = len(games_ids[game_id])
