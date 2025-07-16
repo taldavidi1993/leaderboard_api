@@ -22,7 +22,7 @@ def read_root(request: Request):
 
 @app.post("/score/") # Define endpoint for create or update score
 async def create_or_update_score(entry: ScoreEntry, request: Request):
-    #await verify_api_key(request) # block access if API key (need to be for any path)
+    await verify_api_key(request) # block access  API key (need to be for any path)
     if entry.game_id not in games_ids: #new game_id no one play it before
         games_ids[entry.game_id] = {}
     users_dic= games_ids[entry.game_id]
@@ -40,7 +40,7 @@ async def create_or_update_score(entry: ScoreEntry, request: Request):
 
 @app.get("/topK/{game_id}") # Define endpoint to get TOPK for a specific game_id
 async def get_top_k(game_id: str, request: Request, k: int =3 ): #if k is not provided, default to 3
-    #await verify_api_key(request) # block access if API key (need to be for any path)
+    await verify_api_key(request) # block access  API key (need to be for any path)
     if game_id not in games_ids:
         return {"message": f"No scores found for game_id {game_id}"}
     if k<=0 :
@@ -78,7 +78,7 @@ async def get_top_k(game_id: str, request: Request, k: int =3 ): #if k is not pr
 
 @app.get("/rank/{game_id}/{user_id}") # Define endpoint to rank a specific user in a game
 async def get_user_rank(game_id: str, user_id: str, request: Request):    
-    #await verify_api_key(request) # block access if API key (need to be for any path)
+    await verify_api_key(request) # block access  API key (need to be for any path)
     if game_id not in games_ids:
         return {"message": f"No scores found for game_id {game_id}"}
     if user_id not in games_ids[game_id]:
@@ -87,10 +87,11 @@ async def get_user_rank(game_id: str, user_id: str, request: Request):
     rank = 1
     for idx, (user, data_dict) in enumerate(score_sorted_list):
         if user_id == user:
+            percentile=round( ((len(score_sorted_list) - rank)/ len(score_sorted_list)) * 100 ,2)
             return {"message": f"User {user_id} is ranked {rank} in game_id {game_id}",
                     "user_score": data_dict["user_score"],
                     "rank": rank,
-                    "percentile": str(round((len(score_sorted_list)-rank / len(score_sorted_list)) * 100, 2))+"%"}
+                    "percentile": str(percentile)+"%"}
         if idx < len(score_sorted_list) - 1 and data_dict["user_score"] > score_sorted_list[idx+1][1]["user_score"]: #check if the next user has a lower score
             rank += 1
 
