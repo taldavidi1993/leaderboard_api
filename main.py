@@ -28,7 +28,7 @@ class UserScore(BaseModel):
 
 @app.get("/") # Define endpoint with a GET request (root path)
 async def read_root(request: Request):
-    verify_api_key(request)
+    await verify_api_key(request)
     return {"message": "Hello, Leaderboard!"}
 
 
