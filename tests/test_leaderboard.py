@@ -2,12 +2,11 @@ import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-import pytest
 from fastapi.testclient import TestClient
 from main import app
 
 client = TestClient(app)
-API_KEY = "my-secret-key"  # adjust if your verify_api_key expects a specific value
+API_KEY = "my-secret-key"
 headers = {"X-API-Key": API_KEY}
 
 def test_invalid_api_key():
@@ -42,7 +41,6 @@ def test_top_k_order_and_fields():
     assert resp.status_code == 200
     data = resp.json()
     assert len(data["top_k_scores"]) == 2
-    # Check order: user_score descending, then timestamp ascending
     scores = [u["user_score"] for u in data["top_k_scores"]]
     assert scores == sorted(scores, reverse=True)
     for u in data["top_k_scores"]:
@@ -55,6 +53,7 @@ def test_rank():
     assert "user_rank" in data
     assert "user_score" in data
     assert "display_name" in data
+    assert "percentile" in data
 
 def test_stats():
     resp = client.get("/stas/g1", headers=headers)
