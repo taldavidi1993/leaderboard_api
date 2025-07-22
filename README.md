@@ -94,7 +94,7 @@ print(resp.json())
 
 ---
 
-## Design Decisions
+## 🛠️ Design Decisions
 
 ### 1. Data Models
 Three Pydantic BaseModel classes are used for clarity and validation:
@@ -121,7 +121,7 @@ Three Pydantic BaseModel classes are used for clarity and validation:
 ### 6. Documentation
 - Swagger UI is enabled for interactive API exploration and testing.
 
-### 7. Runtime
+### 7. ⚡ Runtime
 This design optimizes for fast score creation and updates (O(1)), with sorting only performed when needed for topK or rank queries (O(N log N)). Most requests are expected to be score submissions, while ranking queries are less frequent.
 
 - **Score creation/update:** O(1) dictionary lookup and assignment
@@ -133,7 +133,7 @@ This design optimizes for fast score creation and updates (O(1)), with sorting o
 This avoids unnecessary repeated sorting and keeps frequent operations fast. If ranking/topK queries were as frequent as updates, the design could be changed to maintain a sorted list at all times (e.g., using bisect for O(N) insertion), making future queries O(1).
 
 ---
-## Assumptions or Limitations
+## 📋 Assumptions & Limitations
 
 - **User ID Uniqueness:** Each user is identified by a unique user ID 
 - **Display Name Changes:** Users can change their display name, but it will only update if their score is updated (i.e., only on a successful score change).
@@ -143,7 +143,7 @@ This avoids unnecessary repeated sorting and keeps frequent operations fast. If 
 To avoid this, I introduced a secondary ranking criterion: the timestamp of when the score was recorded. In the case of identical scores, the user who achieved the score earlier will be ranked higher. This ensures consistent and fair ordering, especially for Top K queries.
 
 ---
-## Using AI Tools
+## 🤖 Using AI Tools
 - **ChatGPT:** Used as a technical reference for Python built-ins, FastAPI patterns, and runtime/data structure questions. Leveraged for validating edge cases and efficiency, but all implementation and design decisions were made independently.
 - **GitHub Copilot:** Used for code suggestions, syntax completion, and quick prototyping. All final code was reviewed and customized for clarity, correctness, and project requirements.
 
