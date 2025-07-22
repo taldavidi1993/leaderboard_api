@@ -32,12 +32,12 @@ async def read_root(request: Request):
 
 @app.post("/score/") # Define endpoint for create or update score
 async def create_or_update_score(entry: ScoreEntry, request: Request):
-    await verify_api_key(request) # block access  API key
-    if entry.game_id not in games: #new game_id: no one play it before
+    await verify_api_key(request) # Block access  API key
+    if entry.game_id not in games: #New game_id: no one play it before
         games[entry.game_id] = Game(users={}, sorted_users_cache=[], is_sorted=False)
-    users= games[entry.game_id].users
-    if entry.user_id not in users: #new user_id for this game_id
-        users[entry.user_id]= UserScore(
+    users = games[entry.game_id].users
+    if entry.user_id not in users: #New user_id for this game_id
+        users[entry.user_id] = UserScore(
             display_name=entry.display_name,
             user_score=entry.user_score,
             timestamp=time.time()
@@ -45,7 +45,7 @@ async def create_or_update_score(entry: ScoreEntry, request: Request):
         games[entry.game_id].is_sorted = False
         return {"message": f"User {entry.user_id} was successfully added to game {entry.game_id}"}    
     else: #user_id already exists for this game_id
-        if users[entry.user_id].user_score < entry.user_score: #update score only if the new score is greater than the old one
+        if users[entry.user_id].user_score < entry.user_score: #Update score only if the new score is greater than the old one
             users[entry.user_id].user_score = entry.user_score
             users[entry.user_id].display_name = entry.display_name
             users[entry.user_id].timestamp = time.time()
@@ -54,24 +54,23 @@ async def create_or_update_score(entry: ScoreEntry, request: Request):
         else:
             return {"message": f"Score for {entry.user_id} in game {entry.game_id} not updated"}
             
-def sorting(game_id: str)-> list[tuple[str, UserScore]]:
-    """Sorts sorted_users_cache by score and timestamp if sorting is required."""
+def sort_game_score(game_id: str)-> list[tuple[str, UserScore]]: #Sorts sorted_users_cache by score and timestamp if sorting is required | returns sorted list of tuples (user_id, UserScore)
     if games[game_id].is_sorted is False: 
         games[game_id].sorted_users_cache = sorted(
             games[game_id].users.items(),
-            key=lambda x: (-x[1].user_score, x[1].timestamp) # sort by score descending, then timestamp ascending
+            key=lambda x: (-x[1].user_score, x[1].timestamp) # Sort by score descending, then timestamp ascending
         )
         games[game_id].is_sorted = True
     return games[game_id].sorted_users_cache
 
-@app.get("/topK/{game_id}") # Define endpoint to get TOPK for a specific game_id
-async def get_top_k(game_id: str, request: Request, k: int =3 ): #if k is not provided, default to 3
+@app.get("/topK/{game_id}") # Define endpoint to get TopK for a specific game_id
+async def get_top_k(game_id: str, request: Request, k: int =3 ): #If k is not provided, default to 3
     await verify_api_key(request) 
     if game_id not in games:
         return {"message": f"No scores found for game_id {game_id}"}
-    if k<=0 :
+    if k <= 0 :
         return {"message": f"K must be greater than 0"}
-    score_sorted_list = sorting(game_id) 
+    score_sorted_list = sort_game_score(game_id) 
     if k >= len(score_sorted_list):
         message = f"Only {len(games[game_id].users)} scores available for game_id {game_id}"
         top_k_scores = score_sorted_list
@@ -97,11 +96,11 @@ async def get_user_rank(game_id: str, user_id: str, request: Request):
         return {"message": f"No scores found for game_id {game_id}"}
     if user_id not in games[game_id].users:
         return {"message": f"No score found for user_id {user_id} in game_id {game_id}"}
-    score_sorted_list = sorting(game_id)
+    score_sorted_list = sort_game_score(game_id)
     for idx, (usid, user_data) in enumerate(score_sorted_list):
         if user_id == usid:
             return {
-                "user_rank": idx + 1,  # rank starts from 1
+                "user_rank": idx + 1,  # Rank starts from 1
                 "user_score": user_data.user_score,
                 "display_name": user_data.display_name,
                 "percentile": str(round(((len(score_sorted_list)-(idx + 1))/len(score_sorted_list) )* 100, 2))+"%" 
@@ -113,7 +112,7 @@ async def get_game_statistics(game_id: str, request: Request):
     if game_id not in games:
         return {"message": f"No scores found for game_id {game_id}"}
     total_users = len(games[game_id].users)
-    scores = [user.user_score for user in games[game_id].users.values()] #list comprehension to get all scores
+    scores = [user.user_score for user in games[game_id].users.values()] #List comprehension to get all scores
     mean_score = statistics.mean(scores) if scores else 0
     median_score = statistics.median(scores) if scores else 0
     return {

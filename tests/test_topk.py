@@ -78,7 +78,7 @@ def test_topk_no_extra_sort():
     ]
     for u in users:
         client.post("/score/", json=u, headers=headers)
-    # Request top 4 (should trigger sorting)
+    # Request top 4 (should trigger sort_game_score)
     resp4 = client.get("/topK/gSort?k=4", headers=headers)
     assert resp4.status_code == 200
     data4 = resp4.json()
@@ -91,7 +91,7 @@ def test_topk_no_extra_sort():
     is_sorted = game_list == sorted(game_list, key=lambda x: (-x[1].user_score, x[1].timestamp))
     assert is_sorted
     assert sort_flag_before is True
-    # Request top 3 (should NOT trigger sorting again)
+    # Request top 3 (should NOT trigger sort_game_score again)
     resp3 = client.get("/topK/gSort?k=3", headers=headers)
     assert resp3.status_code == 200
     data3 = resp3.json()

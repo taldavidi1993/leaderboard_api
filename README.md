@@ -101,12 +101,12 @@ Three Pydantic BaseModel classes are used for clarity and validation:
 - **ScoreEntry**: Represents incoming requests. User and game IDs are flexible (string), but can be made stricter if needed.
 - **Game**:
     - `users`: Dictionary mapping user IDs to their UserScore objects for efficient lookup and updates.
-    - `sorted_users_cache`: List of sorted (user_id, UserScore) tuples, generated only when topK or rank queries are made to avoid redundant sorting.
-    - `is_sorted`: Boolean tracking whether sorting is needed. Updated whenever a user is added or their score changes.
+    - `sorted_users_cache`: List of sorted (user_id, UserScore) tuples, generated only when topK or rank queries are made to avoid redundant sort_game_score.
+    - `is_sorted`: Boolean tracking whether sort_game_score is needed. Updated whenever a user is added or their score changes.
 - **UserScore**: Holds each user's score, display name, and timestamp for fast access and ranking.
 
 ### 2. Sorting & Performance
-- Sorting is only performed when necessary (topK/rank queries) and cached using `sorted_users_cache` and `is_sorted` to avoid repeated sorting.
+- Sorting is only performed when necessary (topK/rank queries) and cached using `sorted_users_cache` and `is_sorted` to avoid repeated sort_game_score.
 - Dictionary lookups for users are O(1), making score updates and queries efficient.
 
 ### 3. API Security
@@ -121,16 +121,16 @@ Three Pydantic BaseModel classes are used for clarity and validation:
 ### 6. Documentation
 - Swagger UI is enabled for interactive API exploration and testing.
 
-### 7.  Runtime
-This design optimizes for fast score creation and updates (O(1)), with sorting only performed when needed for topK or rank queries (O(N log N)). Most requests are expected to be score submissions, while ranking queries are less frequent.
+### 7. Runtime
+This design optimizes for fast score creation and updates (O(1)), with sort_game_score only performed when needed for topK or rank queries (O(N log N))
 
 - **Score creation/update:** O(1) dictionary lookup and assignment
 - **Sorting for topK/rank:** O(N log N), only if the user list was modified since the last sort (tracked by `is_sorted`). Otherwise, O(1) to return cached sorted list.
-- **TopK query:** O(K) after sorting
-- **Rank query:** O(N) after sorting
+- **TopK query:** O(K) after sort_game_score
+- **Rank query:** O(N) after sort_game_score
 - **Game statistics:** O(N) for mean/median calculations
 
-This avoids unnecessary repeated sorting and keeps frequent operations fast. If ranking/topK queries were as frequent as updates, the design could be changed to maintain a sorted list at all times (e.g., using bisect for O(N) insertion), making future queries O(1).
+This avoids unnecessary repeated sort_game_score and keeps frequent operations fast. If ranking/topK queries were as frequent as updates, the design could be changed to maintain a sorted list at all times (e.g., using bisect for O(N) insertion), making future queries O(1).
 
 ---
 ## 📋 Assumptions & Limitations
@@ -138,7 +138,7 @@ This avoids unnecessary repeated sorting and keeps frequent operations fast. If 
 - **User ID Uniqueness:** Each user is identified by a unique user ID 
 - **Display Name Changes:** Users can change their display name, but it will only update if their score is updated (i.e., only on a successful score change).
 - **TopK :** If k is not provided in a topK request, the default value is 3.
-- **Request Frequency  :** It is assumed that create/update score requests are more frequent than topK or rank queries. Therefore, the system is optimized for fast write operations, while read operations perform sorting only when necessary.
+- **Request Frequency  :** It is assumed that create/update score requests are more frequent than topK or rank queries. Therefore, the system is optimized for fast write operations, while read operations perform sort_game_score only when necessary.
 - **User Ranking Decision:** In edge cases where multiple users have the same score, I initially implemented the system to assign them the same rank. However, this led to potential issues when returning the Top K users — it could result in returning more than K users, which might be problematic.
 To avoid this, I introduced a secondary ranking criterion: the timestamp of when the score was recorded. In the case of identical scores, the user who achieved the score earlier will be ranked higher. This ensures consistent and fair ordering, especially for Top K queries.
 
