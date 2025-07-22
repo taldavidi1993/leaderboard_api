@@ -15,13 +15,11 @@
    - Open [http://localhost:8000/docs](http://localhost:8000/docs) in your browser.
 
 ---
-
 ## 🔐 Authentication
 All API requests require the following header:
 ```
 X-API-Key: my-secret-key
 ```
-
 ---
 
 ## 🧪 How to Test the API
@@ -141,7 +139,7 @@ This avoids unnecessary repeated sorting and keeps frequent operations fast. If 
 - **User ID Uniqueness:** Each user is identified by a unique user ID 
 - **Display Name Changes:** Users can change their display name, but it will only update if their score is updated (i.e., only on a successful score change).
 - **TOPK :** If k is not provided in a topK request, the default value is 3.
-- **Request Frequency  :**It is assumed that create/update score requests are more frequent than topK or rank queries. Therefore, the system is optimized for fast write operations, while read operations perform sorting only when necessary.
+- **Request Frequency  :** It is assumed that create/update score requests are more frequent than topK or rank queries. Therefore, the system is optimized for fast write operations, while read operations perform sorting only when necessary.
 
 ---
 ## 🔗 Live Demo
