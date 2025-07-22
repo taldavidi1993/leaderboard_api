@@ -1,92 +1,154 @@
 # leaderboard_api
 
 
+## 🚀 How to Run Locally
 
-## Getting started
+1. **Install dependencies:**
+   ```sh
+   pip install -r requirements.txt
+   ```
+2. **Start the server:**
+   ```sh
+   uvicorn main:app --reload --host 0.0.0.0 --port 8000
+   ```
+3. **Access Swagger UI:**
+   - Open [http://localhost:8000/docs](http://localhost:8000/docs) in your browser.
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+---
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
-
-## Add your files
-
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
-
+## 🔐 Authentication
+All API requests require the following header:
 ```
-cd existing_repo
-git remote add origin https://gitlab.mobileye.com/talda/leaderboard_api.git
-git branch -M main
-git push -uf origin main
+X-API-Key: my-secret-key
 ```
 
-## Integrate with your tools
+---
 
-- [ ] [Set up project integrations](https://gitlab.mobileye.com/talda/leaderboard_api/-/settings/integrations)
+## 🧪 How to Test the API
 
-## Collaborate with your team
+### 1. Swagger UI
+- Visit [http://localhost:8000/docs](http://localhost:8000/docs)
+- Click "Authorize" and enter `my-secret-key` for `X-API-Key`.
+- Try out endpoints interactively.
 
-- [ ] [Invite team players and collaborators](https://docs.gitlab.com/ee/user/project/players/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+### 2. Postman
+- Import the OpenAPI spec from `/docs` or use the endpoints directly.
+- Add the header:
+  - Key: `X-API-Key`
+  - Value: `my-secret-key`
+- Example POST request:
+  ```json
+  POST http://localhost:8000/score/
+  Headers: { "X-API-Key": "my-secret-key" }
+  Body (JSON):
+  {
+    "user_id": "u1",
+    "display_name": "Alice",
+    "game_id": "g1",
+    "user_score": 10
+  }
+  ```
 
-## Test and Deploy
+### 3. curl Commands
+- **Add/Update Score:**
+  ```sh
+  curl -X POST "http://localhost:8000/score/" \
+    -H "Content-Type: application/json" \
+    -H "X-API-Key: my-secret-key" \
+    -d '{"user_id": "u1", "display_name": "Alice", "game_id": "g1", "user_score": 10}'
+  ```
+- **Get Top K:**
+  ```sh
+  curl -X GET "http://localhost:8000/topK/g1?k=3" \
+    -H "X-API-Key: my-secret-key"
+  ```
+- **Get User Rank:**
+  ```sh
+  curl -X GET "http://localhost:8000/rank/g1/u1" \
+    -H "X-API-Key: my-secret-key"
+  ```
+- **Get Game Stats:**
+  ```sh
+  curl -X GET "http://localhost:8000/stas/g1" \
+    -H "X-API-Key: my-secret-key"
+  ```
 
-Use the built-in continuous integration in GitLab.
+### 4. Python Client Example
+```python
+import requests
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing(SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+API_URL = "http://localhost:8000"
+API_KEY = "my-secret-key"
+headers = {"X-API-Key": API_KEY}
 
-***
+# Add a score
+resp = requests.post(f"{API_URL}/score/", json={
+    "user_id": "u1",
+    "display_name": "Alice",
+    "game_id": "g1",
+    "user_score": 10
+}, headers=headers)
+print(resp.json())
 
-# Editing this README
+# Get top 3
+resp = requests.get(f"{API_URL}/topK/g1?k=3", headers=headers)
+print(resp.json())
+```
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thank you to [makeareadme.com](https://www.makeareadme.com/) for this template.
+---
 
-## Suggestions for a good README
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+## Design Decisions
 
-## Name
-Choose a self-explaining name for your project.
+### 1. Data Models
+Three Pydantic BaseModel classes are used for clarity and validation:
+- **ScoreEntry**: Represents incoming requests. User and game IDs are flexible (string), but can be made stricter if needed.
+- **Game**:
+    - `users`: Dictionary mapping user IDs to their UserScore objects for efficient lookup and updates.
+    - `sort_members`: List of sorted (user_id, UserScore) tuples, generated only when topK or rank queries are made to avoid redundant sorting.
+    - `sort_flag`: Boolean tracking whether sorting is needed. Updated whenever a user is added or their score changes.
+- **UserScore**: Holds each user's score, display name, and timestamp for fast access and ranking.
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+### 2. Sorting & Performance
+- Sorting is only performed when necessary (topK/rank queries) and cached using `sort_members` and `sort_flag` to avoid repeated sorting.
+- Dictionary lookups for users are O(1), making score updates and queries efficient.
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+### 3. API Security
+- All endpoints require an API key via the `X-API-Key` header for authentication.
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+### 4. Testing
+- Comprehensive pytest test suite covers all endpoints, edge cases, and ensures isolation between tests.
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+### 5. Containerization
+- Dockerfile provided for easy deployment and reproducibility.
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+### 6. Documentation
+- Swagger UI is enabled for interactive API exploration and testing.
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+### 7. Runtime
+This design optimizes for fast score creation and updates (O(1)), with sorting only performed when needed for topK or rank queries (O(N log N)). Most requests are expected to be score submissions, while ranking queries are less frequent.
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+- **Score creation/update:** O(1) dictionary lookup and assignment
+- **Sorting for topK/rank:** O(N log N), only if the user list was modified since the last sort (tracked by `sort_flag`). Otherwise, O(1) to return cached sorted list.
+- **TopK query:** O(K) after sorting
+- **Rank query:** O(N) after sorting
+- **Game statistics:** O(N) for mean/median calculations
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+This avoids unnecessary repeated sorting and keeps frequent operations fast. If ranking/topK queries were as frequent as updates, the design could be changed to maintain a sorted list at all times (e.g., using bisect for O(N) insertion), making future queries O(1).
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+---
+## Assumptions or Limitations
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+- **User ID Uniqueness:** Each user is identified by a unique user ID 
+- **Display Name Changes:** Users can change their display name, but it will only update if their score is updated (i.e., only on a successful score change).
+- **TOPK :** If k is not provided in a topK request, the default value is 3.
+- **Request Frequency  :**It is assumed that create/update score requests are more frequent than topK or rank queries. Therefore, the system is optimized for fast write operations, while read operations perform sorting only when necessary.
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+---
+## 🔗 Live Demo
+The API is deployed here:  
+👉 [https://leaderboard-api-tth0.onrender.com/docs](https://leaderboard-api-tth0.onrender.com/docs)
 
-## License
-For open source projects, say how it is licensed.
+Note: All endpoints require `X-API-Key` header.
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+---
+

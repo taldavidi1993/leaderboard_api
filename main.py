@@ -1,7 +1,6 @@
 from fastapi import FastAPI, Request
 from auth import verify_api_key
 from pydantic import BaseModel, Field
-import bisect
 import statistics
 import time
 from c_openApi import add_custom_openapi
@@ -34,7 +33,7 @@ async def read_root(request: Request):
 
 @app.post("/score/") # Define endpoint for create or update score
 async def create_or_update_score(entry: ScoreEntry, request: Request):
-    await verify_api_key(request) # block access  API key (need to be for any path)
+    await verify_api_key(request) # block access  API key
     if entry.game_id not in games: #new game_id: no one play it before
         games[entry.game_id] = Game(users={}, sort_members=[], sort_flag=False)
 
@@ -46,7 +45,7 @@ async def create_or_update_score(entry: ScoreEntry, request: Request):
             timestamp=time.time()
         )
         games[entry.game_id].sort_flag = False
-        return {"message": f" {entry.user_id} in game {entry.game_id} added successfully"}
+        return {"message": f"User {entry.user_id} was successfully added to game {entry.game_id}"}
     
     else: #user_id already exists for this game_id
         if users[entry.user_id].user_score < entry.user_score: #update score only if the new score is greater than the old one
@@ -54,9 +53,9 @@ async def create_or_update_score(entry: ScoreEntry, request: Request):
             users[entry.user_id].display_name = entry.display_name
             users[entry.user_id].timestamp = time.time()
             games[entry.game_id].sort_flag = False
-            return {"message": f"Score for  {entry.user_id} in game {entry.game_id} updated successfully"}
+            return {"message": f"Score for {entry.user_id} in game {entry.game_id} updated successfully"}
         else:
-            return {"message": f"Score for  {entry.user_id} in game {entry.game_id} not updated"}
+            return {"message": f"Score for {entry.user_id} in game {entry.game_id} not updated"}
             
 def sorting(game_id: str):
     if games[game_id].sort_flag is False: #if the game_id is not sorted, sort it
@@ -89,7 +88,7 @@ async def get_top_k(game_id: str, request: Request, k: int =3 ): #if k is not pr
                 "display_name": user_data.display_name,
                 "user_score": user_data.user_score,
             }
-            for  user_id, user_data in top_k_scores
+            for user_id, user_data in top_k_scores
         ]
     }
 
@@ -108,11 +107,12 @@ async def get_user_rank(game_id: str, user_id: str, request: Request):
                 "user_rank": idx + 1,  # rank starts from 1
                 "user_score": user_data.user_score,
                 "display_name": user_data.display_name,
-                "percentile": str(round(( (len(score_sorted_list)-(idx + 1)) / len(score_sorted_list) )* 100, 2))+"%" 
+                "percentile": str(round(((len(score_sorted_list)-(idx + 1))/len(score_sorted_list) )* 100, 2))+"%" 
             }
+        
 @app.get("/stas/{game_id}") # Define endpoint to get statistics for a specific game_id
 async def get_game_statistics(game_id: str, request: Request):
-    await verify_api_key(request) # block access if API key (need to be for any path)
+    await verify_api_key(request) 
     if game_id not in games:
         return {"message": f"No scores found for game_id {game_id}"}
     total_users = len(games[game_id].users)
@@ -122,6 +122,6 @@ async def get_game_statistics(game_id: str, request: Request):
     return {
         "message": f"Statistics for game_id {game_id}",
         "total_users": total_users,
-        "mean_score":round(mean_score,2), 
+        "mean_score": round(mean_score,2), 
         "median_score": round(median_score ,2)
     }
