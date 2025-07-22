@@ -3,7 +3,3 @@ uvicorn
 pydantic
 pytest
 httpx
-sys
-os
-time
-fastapi.openapi.utils
