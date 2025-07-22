@@ -20,7 +20,7 @@ def test_topk_invalid_k_type():
     resp = client.get("/topK/gX?k=abc", headers=headers)
     assert resp.status_code == 422
     data = resp.json()
-    assert "value is not a valid integer" in str(data)
+    assert "Input should be a valid integer, unable to parse string as an integer" in str(data)
 
 def test_topk_no_k_param():
     client.post("/score/", json={"user_id": "p1", "display_name": "A", "game_id": "gX", "user_score": 10}, headers=headers)

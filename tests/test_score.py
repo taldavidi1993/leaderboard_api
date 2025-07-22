@@ -25,7 +25,7 @@ def test_multiple_games_and_user_behavior():
     data1_update = {"user_id": "u1", "display_name": "Alice2", "game_id": "g1", "user_score": 20}
     resp_update = client.post("/score/", json=data1_update, headers=headers)
     assert resp_update.status_code == 200
-    assert "updated successfully" in resp_update.json()["message"]
+    assert resp_update.json()["message"] == "Score for u1 in game g1 successfully updated"
     assert games["g1"].users["u1"].user_score == 20
     assert games["g1"].users["u1"].display_name == "Alice2"
     assert games["g1"].users["u1"].timestamp > ts1

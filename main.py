@@ -53,7 +53,7 @@ async def create_or_update_score(entry: ScoreEntry, request: Request):
             users[entry.user_id].display_name = entry.display_name
             users[entry.user_id].timestamp = time.time()
             games[entry.game_id].sort_flag = False
-            return {"message": f"Score for {entry.user_id} in game {entry.game_id} updated successfully"}
+            return {"message": f"Score for {entry.user_id} in game {entry.game_id} successfully updated"}
         else:
             return {"message": f"Score for {entry.user_id} in game {entry.game_id} not updated"}
             
@@ -110,7 +110,7 @@ async def get_user_rank(game_id: str, user_id: str, request: Request):
                 "percentile": str(round(((len(score_sorted_list)-(idx + 1))/len(score_sorted_list) )* 100, 2))+"%" 
             }
         
-@app.get("/stas/{game_id}") # Define endpoint to get statistics for a specific game_id
+@app.get("/stats/{game_id}") # Define endpoint to get statistics for a specific game_id
 async def get_game_statistics(game_id: str, request: Request):
     await verify_api_key(request) 
     if game_id not in games:

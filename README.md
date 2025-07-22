@@ -1,5 +1,4 @@
-# leaderboard_api
-
+# Leaderboard_api
 
 ## 🚀 How to Run Locally
 
@@ -67,7 +66,7 @@ X-API-Key: my-secret-key
   ```
 - **Get Game Stats:**
   ```sh
-  curl -X GET "http://localhost:8000/stas/g1" \
+  curl -X GET "http://localhost:8000/stats/g1" \
     -H "X-API-Key: my-secret-key"
   ```
 
@@ -138,10 +137,18 @@ This avoids unnecessary repeated sorting and keeps frequent operations fast. If 
 
 - **User ID Uniqueness:** Each user is identified by a unique user ID 
 - **Display Name Changes:** Users can change their display name, but it will only update if their score is updated (i.e., only on a successful score change).
-- **TOPK :** If k is not provided in a topK request, the default value is 3.
+- **TopK :** If k is not provided in a topK request, the default value is 3.
 - **Request Frequency  :** It is assumed that create/update score requests are more frequent than topK or rank queries. Therefore, the system is optimized for fast write operations, while read operations perform sorting only when necessary.
+- **User Ranking Decision:** In edge cases where multiple users have the same score, I initially implemented the system to assign them the same rank. However, this led to potential issues when returning the Top K users — it could result in returning more than K users, which might be problematic.
+To avoid this, I introduced a secondary ranking criterion: the timestamp of when the score was recorded. In the case of identical scores, the user who achieved the score earlier will be ranked higher. This ensures consistent and fair ordering, especially for Top K queries.
 
 ---
+## Using AI Tools
+- **ChatGPT:** Used as a technical reference for Python built-ins, FastAPI patterns, and runtime/data structure questions. Leveraged for validating edge cases and efficiency, but all implementation and design decisions were made independently.
+- **GitHub Copilot:** Used for code suggestions, syntax completion, and quick prototyping. All final code was reviewed and customized for clarity, correctness, and project requirements.
+
+---
+
 ## 🔗 Live Demo
 The API is deployed here:  
 👉 [https://leaderboard-api-tth0.onrender.com/docs](https://leaderboard-api-tth0.onrender.com/docs)

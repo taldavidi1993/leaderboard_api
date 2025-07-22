@@ -17,18 +17,28 @@ def test_invalid_api_key():
     assert resp.json()["detail"] == "Unauthorized"
     
 def test_add_new_score():
+    from main import games
+    games.clear()
     data = {"user_id": "u1", "display_name": "Alice", "game_id": "g1", "user_score": 10}
     resp = client.post("/score/", json=data, headers=headers)
     assert resp.status_code == 200
-    assert "added successfully" in resp.json()["message"]
+    assert resp.json()["message"] == "User u1 was successfully added to game g1"
 
 def test_update_score_higher():
+    from main import games
+    games.clear()
+    data = {"user_id": "u1", "display_name": "Alice", "game_id": "g1", "user_score": 10}
+    client.post("/score/", json=data, headers=headers)
     data = {"user_id": "u1", "display_name": "Alice", "game_id": "g1", "user_score": 20}
     resp = client.post("/score/", json=data, headers=headers)
     assert resp.status_code == 200
-    assert "updated successfully" in resp.json()["message"]
+    assert resp.json()["message"] == "Score for u1 in game g1 successfully updated"
 
 def test_update_score_lower():
+    from main import games
+    games.clear()
+    data = {"user_id": "u1", "display_name": "Alice", "game_id": "g1", "user_score": 20}
+    client.post("/score/", json=data, headers=headers)
     data = {"user_id": "u1", "display_name": "Alice", "game_id": "g1", "user_score": 15}
     resp = client.post("/score/", json=data, headers=headers)
     assert resp.status_code == 200
@@ -56,7 +66,7 @@ def test_rank():
     assert "percentile" in data
 
 def test_stats():
-    resp = client.get("/stas/g1", headers=headers)
+    resp = client.get("/stats/g1", headers=headers)
     assert resp.status_code == 200
     data = resp.json()
     assert "total_users" in data

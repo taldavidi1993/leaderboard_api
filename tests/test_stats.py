@@ -10,7 +10,7 @@ API_KEY = "my-secret-key"
 headers = {"X-API-Key": API_KEY}
 
 def test_stats_game_not_exist():
-    resp = client.get("/stas/doesnotexist", headers=headers)
+    resp = client.get("/stats/doesnotexist", headers=headers)
     assert resp.status_code == 200
     data = resp.json()
     assert "No scores found" in data["message"]
@@ -25,7 +25,7 @@ def test_stats_five_users():
     ]
     for u in users:
         client.post("/score/", json=u, headers=headers)
-    resp = client.get("/stas/gS", headers=headers)
+    resp = client.get("/stats/gS", headers=headers)
     assert resp.status_code == 200
     data = resp.json()
     assert data["total_users"] == 5
@@ -35,7 +35,7 @@ def test_stats_five_users():
 def test_stats_update_and_add_user():
     client.post("/score/", json={"user_id": "u1", "display_name": "A", "game_id": "gS", "user_score": 60}, headers=headers)
     client.post("/score/", json={"user_id": "u6", "display_name": "F", "game_id": "gS", "user_score": 25}, headers=headers)
-    resp = client.get("/stas/gS", headers=headers)
+    resp = client.get("/stats/gS", headers=headers)
     assert resp.status_code == 200
     data = resp.json()
     assert data["total_users"] == 6
