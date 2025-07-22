@@ -17,8 +17,8 @@ class ScoreEntry(BaseModel):
 
 class Game(BaseModel):
     users: dict 
-    sort_members: list
-    sort_flag: bool
+    sorted_users_cache: list
+    is_sorted: bool
 
 class UserScore(BaseModel):
     display_name: str
@@ -30,13 +30,11 @@ async def read_root(request: Request):
     await verify_api_key(request)
     return {"message": "Hello, Leaderboard!"}
 
-
 @app.post("/score/") # Define endpoint for create or update score
 async def create_or_update_score(entry: ScoreEntry, request: Request):
     await verify_api_key(request) # block access  API key
     if entry.game_id not in games: #new game_id: no one play it before
-        games[entry.game_id] = Game(users={}, sort_members=[], sort_flag=False)
-
+        games[entry.game_id] = Game(users={}, sorted_users_cache=[], is_sorted=False)
     users= games[entry.game_id].users
     if entry.user_id not in users: #new user_id for this game_id
         users[entry.user_id]= UserScore(
@@ -44,27 +42,27 @@ async def create_or_update_score(entry: ScoreEntry, request: Request):
             user_score=entry.user_score,
             timestamp=time.time()
         )
-        games[entry.game_id].sort_flag = False
-        return {"message": f"User {entry.user_id} was successfully added to game {entry.game_id}"}
-    
+        games[entry.game_id].is_sorted = False
+        return {"message": f"User {entry.user_id} was successfully added to game {entry.game_id}"}    
     else: #user_id already exists for this game_id
         if users[entry.user_id].user_score < entry.user_score: #update score only if the new score is greater than the old one
             users[entry.user_id].user_score = entry.user_score
             users[entry.user_id].display_name = entry.display_name
             users[entry.user_id].timestamp = time.time()
-            games[entry.game_id].sort_flag = False
+            games[entry.game_id].is_sorted = False
             return {"message": f"Score for {entry.user_id} in game {entry.game_id} successfully updated"}
         else:
             return {"message": f"Score for {entry.user_id} in game {entry.game_id} not updated"}
             
-def sorting(game_id: str):
-    if games[game_id].sort_flag is False: #if the game_id is not sorted, sort it
-        games[game_id].sort_members = sorted(
+def sorting(game_id: str)-> list[tuple[str, UserScore]]:
+    """Sorts sorted_users_cache by score and timestamp if sorting is required."""
+    if games[game_id].is_sorted is False: 
+        games[game_id].sorted_users_cache = sorted(
             games[game_id].users.items(),
-            key=lambda x: (-x[1].user_score, x[1].timestamp)
+            key=lambda x: (-x[1].user_score, x[1].timestamp) # sort by score descending, then timestamp ascending
         )
-        games[game_id].sort_flag = True
-    return games[game_id].sort_members
+        games[game_id].is_sorted = True
+    return games[game_id].sorted_users_cache
 
 @app.get("/topK/{game_id}") # Define endpoint to get TOPK for a specific game_id
 async def get_top_k(game_id: str, request: Request, k: int =3 ): #if k is not provided, default to 3
@@ -91,7 +89,6 @@ async def get_top_k(game_id: str, request: Request, k: int =3 ): #if k is not pr
             for user_id, user_data in top_k_scores
         ]
     }
-
 
 @app.get("/rank/{game_id}/{user_id}") # Define endpoint to rank a specific user in a game
 async def get_user_rank(game_id: str, user_id: str, request: Request):    

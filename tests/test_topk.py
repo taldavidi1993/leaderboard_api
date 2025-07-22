@@ -83,10 +83,10 @@ def test_topk_no_extra_sort():
     assert resp4.status_code == 200
     data4 = resp4.json()
     assert len(data4["top_k_scores"]) == 4
-    # Save sort_flag after first sort
+    # Save is_sorted after first sort
     from main import games
-    sort_flag_before = games["gSort"].sort_flag
-    game_list = games["gSort"].sort_members
+    sort_flag_before = games["gSort"].is_sorted
+    game_list = games["gSort"].sorted_users_cache
     # Check if game_list is sorted by user_score descending, then timestamp ascending
     is_sorted = game_list == sorted(game_list, key=lambda x: (-x[1].user_score, x[1].timestamp))
     assert is_sorted
@@ -96,8 +96,8 @@ def test_topk_no_extra_sort():
     assert resp3.status_code == 200
     data3 = resp3.json()
     assert len(data3["top_k_scores"]) == 3
-    # sort_flag should remain True (no extra sort)
-    sort_flag_after = games["gSort"].sort_flag
+    # is_sorted should remain True (no extra sort)
+    sort_flag_after = games["gSort"].is_sorted
     assert sort_flag_before is True
     assert sort_flag_after is True
 

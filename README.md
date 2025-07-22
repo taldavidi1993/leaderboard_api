@@ -101,12 +101,12 @@ Three Pydantic BaseModel classes are used for clarity and validation:
 - **ScoreEntry**: Represents incoming requests. User and game IDs are flexible (string), but can be made stricter if needed.
 - **Game**:
     - `users`: Dictionary mapping user IDs to their UserScore objects for efficient lookup and updates.
-    - `sort_members`: List of sorted (user_id, UserScore) tuples, generated only when topK or rank queries are made to avoid redundant sorting.
-    - `sort_flag`: Boolean tracking whether sorting is needed. Updated whenever a user is added or their score changes.
+    - `sorted_users_cache`: List of sorted (user_id, UserScore) tuples, generated only when topK or rank queries are made to avoid redundant sorting.
+    - `is_sorted`: Boolean tracking whether sorting is needed. Updated whenever a user is added or their score changes.
 - **UserScore**: Holds each user's score, display name, and timestamp for fast access and ranking.
 
 ### 2. Sorting & Performance
-- Sorting is only performed when necessary (topK/rank queries) and cached using `sort_members` and `sort_flag` to avoid repeated sorting.
+- Sorting is only performed when necessary (topK/rank queries) and cached using `sorted_users_cache` and `is_sorted` to avoid repeated sorting.
 - Dictionary lookups for users are O(1), making score updates and queries efficient.
 
 ### 3. API Security
@@ -125,7 +125,7 @@ Three Pydantic BaseModel classes are used for clarity and validation:
 This design optimizes for fast score creation and updates (O(1)), with sorting only performed when needed for topK or rank queries (O(N log N)). Most requests are expected to be score submissions, while ranking queries are less frequent.
 
 - **Score creation/update:** O(1) dictionary lookup and assignment
-- **Sorting for topK/rank:** O(N log N), only if the user list was modified since the last sort (tracked by `sort_flag`). Otherwise, O(1) to return cached sorted list.
+- **Sorting for topK/rank:** O(N log N), only if the user list was modified since the last sort (tracked by `is_sorted`). Otherwise, O(1) to return cached sorted list.
 - **TopK query:** O(K) after sorting
 - **Rank query:** O(N) after sorting
 - **Game statistics:** O(N) for mean/median calculations
