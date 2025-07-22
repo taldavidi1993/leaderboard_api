@@ -7,3 +7,6 @@ await = only in async function - the code will stop for 2 second but will not bl
 class request = represent all the data the comes as request from the clinte that send to the server
 running cmd = uvicorn main:app --reload --host 0.0.0.0 --port 8000
 
+git@github.com:taldavidi1993/leaderboard_api.git
+git remote add origin https://github.com/taldavidi1993/leaderboard_api.git
+git push -u origin main

@@ -74,7 +74,7 @@ async def get_top_k(game_id: str, request: Request, k: int =3 ): #if k is not pr
         return {"message": f"No scores found for game_id {game_id}"}
     if k<=0 :
         return {"message": f"K must be greater than 0"}
-    score_sorted_list = sorting(game_id) #sort the game_id
+    score_sorted_list = sorting(game_id) 
     if k >= len(score_sorted_list):
         message = f"Only {len(games[game_id].users)} scores available for game_id {game_id}"
         top_k_scores = score_sorted_list
