@@ -121,7 +121,7 @@ Three Pydantic BaseModel classes are used for clarity and validation:
 ### 6. Documentation
 - Swagger UI is enabled for interactive API exploration and testing.
 
-### 7. ⚡ Runtime
+### 7.  Runtime
 This design optimizes for fast score creation and updates (O(1)), with sorting only performed when needed for topK or rank queries (O(N log N)). Most requests are expected to be score submissions, while ranking queries are less frequent.
 
 - **Score creation/update:** O(1) dictionary lookup and assignment
